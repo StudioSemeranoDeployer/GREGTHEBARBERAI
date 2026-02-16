@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Camera, Upload, Scissors, Sparkles, RefreshCcw, 
   Check, ShieldCheck, ChevronLeft, Download, 
-  User, Image as ImageIcon, Zap, Info, Share2, Eye
+  User, Image as ImageIcon, Zap, Info, Share2, Eye, Key
 } from 'lucide-react';
 import { AppStep, AnalysisResult, GeneratedStyle } from './types';
 import { analyzePhoto, transformHairstyle } from './services/geminiService';
@@ -104,11 +103,31 @@ export default function App() {
         setImage(base64);
         
         const stream = video.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
         setShowCamera(false);
         processImage(base64);
       }
     }
+  };
+
+  const handleApiError = async (err: any) => {
+    console.error("API Error:", err);
+    const errorMessage = err?.message || String(err);
+    
+    // Check for common API key issues
+    if (errorMessage.includes("Requested entity was not found") || errorMessage.includes("API_KEY") || errorMessage.includes("403")) {
+      setError("Service requires a valid API key. If you are a developer, ensure the GEMINI_API_KEY secret is set.");
+      // Check for custom platform dialog
+      const anyWindow = window as any;
+      if (anyWindow.aistudio && typeof anyWindow.aistudio.openSelectKey === 'function') {
+        await anyWindow.aistudio.openSelectKey();
+      }
+    } else {
+      setError("Our digital stylists had a technical issue. Please try again in a moment.");
+    }
+    setStep(AppStep.UPLOAD);
   };
 
   const processImage = async (base64: string) => {
@@ -126,6 +145,7 @@ export default function App() {
           const imageUrl = await transformHairstyle(base64, rec.name);
           return { style: rec, imageUrl };
         } catch (e) {
+          console.error(`Error generating ${rec.name}:`, e);
           return null;
         }
       });
@@ -136,9 +156,8 @@ export default function App() {
       
       setResults(generatedResults);
       setStep(AppStep.RESULT);
-    } catch (err) {
-      setError("Our stylists had trouble with that image. Please try again with better lighting.");
-      setStep(AppStep.UPLOAD);
+    } catch (err: any) {
+      handleApiError(err);
     }
   };
 
@@ -189,10 +208,22 @@ export default function App() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-6 md:p-12 flex flex-col justify-center">
         {error && (
-          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 flex items-center gap-4 animate-in slide-in-from-top-2">
-            <Info size={18} />
-            <p className="text-sm font-medium">{error}</p>
-            <button onClick={() => setError(null)} className="ml-auto text-white/40 hover:text-white transition-colors">&times;</button>
+          <div className="mb-8 p-6 bg-red-500/10 border border-red-500/20 rounded-[2rem] text-red-400 flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-top-2">
+            <Info size={24} className="shrink-0" />
+            <p className="text-sm font-medium flex-1">{error}</p>
+            <div className="flex gap-3 mt-4 sm:mt-0">
+               <button 
+                 onClick={async () => {
+                   const anyWindow = window as any;
+                   if (anyWindow.aistudio) await anyWindow.aistudio.openSelectKey();
+                   setError(null);
+                 }}
+                 className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
+               >
+                 <Key size={14} /> Update Key
+               </button>
+               <button onClick={() => setError(null)} className="text-white/40 hover:text-white transition-colors text-xl leading-none">&times;</button>
+            </div>
           </div>
         )}
 
@@ -452,19 +483,18 @@ export default function App() {
       </main>
 
       <footer className="p-16 border-t border-white/[0.03] mt-24">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-12">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-12 text-center lg:text-left">
           <div className="flex flex-col items-center lg:items-start gap-4">
             <h5 className="text-[11px] font-black uppercase tracking-[0.5em] text-[#d4af37]">GREGTHEBARBER AI</h5>
             <p className="text-[10px] text-white/20 uppercase tracking-[0.2em]">© 2024 Master Class Digital • Professional Stylist Suite</p>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
-            <span className="hover:text-[#d4af37] cursor-pointer transition-colors">Privacy Codex</span>
+          <div className="flex items-center">
             <a 
               href="https://www.instagram.com/marco_vrchitect" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="hover:text-[#d4af37] transition-colors"
+              className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-[#d4af37] transition-all duration-300"
             >
               VirtualArchitectsStudio
             </a>
