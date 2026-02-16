@@ -2,14 +2,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const API_KEY = process.env.API_KEY || '';
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY || '';
+  return new GoogleGenAI({ apiKey });
+};
 
 const cleanBase64 = (base64: string): string => {
   return base64.includes(',') ? base64.split(',')[1] : base64;
 };
 
 export const analyzePhoto = async (base64Image: string): Promise<AnalysisResult> => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const ai = getAiClient();
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -54,14 +57,16 @@ export const analyzePhoto = async (base64Image: string): Promise<AnalysisResult>
   });
 
   try {
-    return JSON.parse(response.text) as AnalysisResult;
+    const text = response.text;
+    if (!text) throw new Error("Empty response from AI engine.");
+    return JSON.parse(text) as AnalysisResult;
   } catch (e) {
-    throw new Error("Analysis failed to parse.");
+    throw new Error("Analysis failed to parse: " + (e as Error).message);
   }
 };
 
 export const transformHairstyle = async (base64Image: string, styleName: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const ai = getAiClient();
   
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -90,5 +95,5 @@ export const transformHairstyle = async (base64Image: string, styleName: string)
     return `data:image/png;base64,${part.inlineData.data}`;
   }
   
-  throw new Error("Visualizer engine error.");
+  throw new Error("Visualizer engine error: Failed to generate stylized image.");
 };
