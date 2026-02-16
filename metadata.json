@@ -1,0 +1,7 @@
+{
+  "name": "GregTheBarber AI",
+  "description": "Your elite AI master barber. High-fidelity facial analysis and instant style visualization for the modern man.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
