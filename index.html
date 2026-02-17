@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>GregTheBarber AI | Elite Style Visualization</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +20,7 @@
             color: #f8fafc;
             overflow-x: hidden;
             margin: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         .font-serif-italic {
             font-family: 'Instrument Serif', serif;
@@ -57,8 +58,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 240px;
-            height: 320px;
+            width: min(240px, 60vw);
+            height: min(320px, 80vw);
             border: 2px dashed rgba(212, 175, 55, 0.5);
             border-radius: 50% 50% 45% 45%;
             pointer-events: none;
@@ -67,9 +68,9 @@
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
     "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
     "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
     "vite": "https://esm.sh/vite@^7.3.1",
@@ -81,6 +82,7 @@
 </head>
 <body class="mesh-gradient min-h-screen">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

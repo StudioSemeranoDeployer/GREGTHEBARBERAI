@@ -1,8 +1,8 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
 const getAiClient = () => {
+  // process.env.API_KEY is defined globally by vite.config.ts during the build
   const apiKey = process.env.API_KEY || '';
   return new GoogleGenAI({ apiKey });
 };
